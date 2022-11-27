@@ -1,0 +1,95 @@
+﻿@page "/"
+@inherits RandomObjectGenerationBase
+
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+
+
+
+<h3 class="text-center">Random Object Generation</h3>
+
+@if (randomObjects == null)
+{
+    <div>
+        Loading
+    </div>
+}
+else
+{
+
+    @foreach (var randomObject in randomObjects)
+    {
+        <div class="card text-center mb-4">
+            <div class="card-header">
+                <input type="checkbox" disabled=@IsGenerating checked=@randomObject.IsEnable @onclick="eventArgs => { CheckBoxClicked(randomObject); }" @onclick:preventDefault="true" />
+                @randomObject.Type
+            </div>
+            <div class="card-body d-flex">
+                <div class="col-4 form-group d-flex flex-row justify-content-center">
+                    <label class="col-8 align-self-center" for="currentPercentage"> Preferred Percentage : </label>
+                    <input disabled=@(!randomObject.IsEnable || IsGenerating ) class="col-4" type="number" max="100" min="0" value=@randomObject.PreferredPercentage @onchange="eventArgs => { PreferredPercentageChanged(randomObject, eventArgs); }" step="1" />
+                </div>
+                <div class="col-4 form-group d-flex flex-row justify-content-center">
+                    <label class="col-8 align-self-center" for="currentPercentage"> Current Percentage : </label>
+                    <label class="col-2 badge badge-light p-1 align-self-center">@randomObject.GetCurrentPercentage().ToString("0.##")</label>
+                </div>
+                <div class="col-4 form-group  d-flex flex-row justify-content-center">
+                    <label class="col-8" for="currentPercentage align-self-center"> Last Generated @randomObject.Type : </label>
+                    <label class="col-4 badge badge-light p-1 align-self-center">@((MarkupString)randomObject.LastGeneratedObject)</label>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <label for="totalCount"> Total Generated: </label>
+                <label class="badge badge-info p-1"> @randomObject.GetThisObjectGeneratedCount()</label>
+            </div>
+        </div>
+    }
+    <hr />
+
+    <div class="d-flex justify-content-center p-4" >
+        <div class="col-8">
+            @if (TotalPercentage != 100)
+            {
+                <div class="alert alert-danger" role="alert">
+                    Error: Total Percentage has to be 100
+                </div>
+            }
+            @if (!AtLeastOneEnabled)
+            {
+                <div class="alert alert-danger" role="alert">
+                    Error: Please select at least one Object
+                </div>
+            }
+        </div>
+
+    </div>
+
+    <div class="form-group d-flex justify-content-end align-items-center p-3">
+        <div class="col-4 align-self-right">
+            <label>Size in KB : </label>
+            <input type="number" @bind="FileSizeInKB" max="1024" min="1" />
+        </div>
+        <div class="col-2 align-self-left">
+            <button class="btn btn-success btn-lg rounded" @onclick="StartGenerating" disabled=@(!AtLeastOneEnabled || TotalPercentage != 100 || IsGenerating)>Start</button>
+        </div>
+        <div class="col-2 align-self-left">
+            <button class="btn btn-danger btn-lg rounded" @onclick="StopGenerating" disabled=@(!IsGenerating)>End</button>
+
+        </div>
+    </div>
+    <h1></h1>
+    <hr />
+    <div class="form-group d-flex justify-content-center align-items-center">
+        <div class="col-3">
+            @if (!IsGenerating)
+            {
+                <a class="btn btn-primary btn-lg btn-block rounded " href="/report">Generate Report</a>
+            }
+        </div>
+    </div>
+    <hr />
+
+}
+
+
+
